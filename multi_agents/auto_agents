@@ -1,0 +1,286 @@
+#!/usr/bin/env bash
+
+usage() {
+  cat <<'USAGE'
+Usage:
+  ./multi_agents/auto_agents "<bug description>" [rounds]
+
+Examples:
+  ./multi_agents/auto_agents "Please fix Execution details page bug"
+  ./multi_agents/auto_agents "Please fix Execution details page bug" 10
+
+Behavior:
+- Uses DeepSeek to convert the natural-language description into a git branch name.
+- If `rounds` is omitted, the script keeps running.
+- Each round runs:
+  1. ./multi_agents/start_agent finder "<bug description>"
+  2. ./multi_agents/start_agent identifier
+  3. DeepSeek judgment: solve or skip
+  4. If solve: ./multi_agents/start_agent reflector
+  5. If solve: ./multi_agents/start_agent fixer <branch_name>
+USAGE
+}
+
+resolve_python_bin() {
+  if command -v python3 >/dev/null 2>&1; then
+    printf '%s\n' "python3"
+    return 0
+  fi
+
+  printf '%s\n' "python"
+}
+
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+  usage
+  exit 1
+fi
+
+bug_description="$1"
+round_limit="${2:-}"
+
+if [[ -n "$round_limit" ]]; then
+  if ! [[ "$round_limit" =~ ^[1-9][0-9]*$ ]]; then
+    echo "Rounds must be a positive integer when provided." >&2
+    exit 1
+  fi
+fi
+
+if [[ -z "${DEEPSEEK_API_KEY:-}" ]]; then
+  echo "DEEPSEEK_API_KEY is required." >&2
+  exit 1
+fi
+
+if [[ -z "${DEEPSEEK_BASE_URL:-}" ]]; then
+  echo "DEEPSEEK_BASE_URL is required." >&2
+  exit 1
+fi
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd "$script_dir/.." && pwd)"
+python_bin="$(resolve_python_bin)"
+
+cd "$repo_root"
+mkdir -p "$repo_root/multi_agents/bugs"
+
+build_branch_name() {
+  REQUEST_DESCRIPTION="$1" "$python_bin" - <<'PY'
+import json
+import os
+import re
+import sys
+import urllib.request
+
+
+def sanitize_branch(raw: str, fallback_source: str) -> str:
+    value = (raw or "").strip()
+    value = re.sub(r"^```[A-Za-z0-9_-]*", "", value)
+    value = value.replace("```", " ").strip()
+    value = value.splitlines()[0].strip() if value.splitlines() else value
+    value = value.strip("'\"` ")
+    value = value.lower()
+    value = re.sub(r"[^a-z0-9._/-]+", "-", value)
+    value = re.sub(r"-{2,}", "-", value)
+    value = re.sub(r"/{2,}", "/", value)
+    value = value.strip("/.-")
+    value = value.replace("..", "-")
+
+    if not value:
+        value = fallback_source.lower()
+        value = re.sub(r"[^a-z0-9]+", "-", value)
+        value = re.sub(r"-{2,}", "-", value).strip("-")
+
+    if not value:
+        value = "bug-fix"
+
+    if "/" not in value:
+        value = f"fix/{value}"
+
+    if value.endswith(".lock"):
+        value = value[:-5] + "-lock"
+
+    return value[:96].rstrip("/.-") or "fix/bug-fix"
+
+
+def call_deepseek(description: str) -> str:
+    base_url = os.environ["DEEPSEEK_BASE_URL"].rstrip("/")
+    endpoint = base_url + "/chat/completions"
+    payload = {
+        "model": "deepseek-chat",
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "Convert a bug-fix request into a concise git branch name. "
+                    "Return only the branch name, preferably in the form fix/<kebab-case>."
+                ),
+            },
+            {"role": "user", "content": description},
+        ],
+        "temperature": 0.1,
+        "max_tokens": 32,
+    }
+    request = urllib.request.Request(
+        endpoint,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {os.environ['DEEPSEEK_API_KEY']}",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(request, timeout=60) as response:
+        body = json.loads(response.read().decode("utf-8"))
+    return body["choices"][0]["message"]["content"]
+
+
+description = os.environ["REQUEST_DESCRIPTION"]
+raw = call_deepseek(description)
+print(sanitize_branch(raw, description))
+PY
+}
+
+select_latest_fixable_case() {
+  "$python_bin" - <<'PY'
+import os
+from pathlib import Path
+
+bugs_dir = Path("multi_agents/bugs")
+cases = {}
+for path in bugs_dir.glob("*.md"):
+    parts = path.name.split("_", 2)
+    if len(parts) != 3:
+        continue
+    case_id = f"{parts[0]}_{parts[1]}"
+    suffix = parts[2]
+    cases.setdefault(case_id, set()).add(suffix)
+
+eligible = [
+    case_id
+    for case_id, files in cases.items()
+    if "finder.md" in files and "identifier.md" in files
+]
+
+print(max(eligible) if eligible else "")
+PY
+}
+
+judge_case() {
+  local case_id="$1"
+  CASE_ID="$case_id" REQUEST_DESCRIPTION="$bug_description" "$python_bin" - <<'PY'
+import json
+import os
+from pathlib import Path
+import urllib.request
+
+case_id = os.environ["CASE_ID"]
+description = os.environ["REQUEST_DESCRIPTION"]
+base = Path("multi_agents/bugs")
+finder_path = base / f"{case_id}_finder.md"
+identifier_path = base / f"{case_id}_identifier.md"
+reflector_path = base / f"{case_id}_reflector.md"
+repair_path = base / f"{case_id}_repair.md"
+
+finder_text = finder_path.read_text(encoding="utf-8") if finder_path.exists() else ""
+identifier_text = identifier_path.read_text(encoding="utf-8") if identifier_path.exists() else ""
+reflector_text = reflector_path.read_text(encoding="utf-8") if reflector_path.exists() else ""
+repair_exists = repair_path.exists()
+
+prompt = f"""
+User request:
+{description}
+
+Case ID:
+{case_id}
+
+Finder report:
+{finder_text}
+
+Identifier report:
+{identifier_text}
+
+Reflector report (optional):
+{reflector_text}
+
+A repair file already exists for this case: {'yes' if repair_exists else 'no'}.
+
+Decide whether this case should proceed to reflector/fixer in this round.
+Return exactly two lines:
+Line 1: SOLVE or SKIP
+Line 2: one short reason
+Rules:
+- Use SKIP if the case is not a real confirmed bug, lacks enough evidence, is already repaired, or is not worth fixing now.
+- Use SOLVE only if this is a real bug worth repairing now.
+""".strip()
+
+payload = {
+    "model": "deepseek-chat",
+    "messages": [
+        {
+            "role": "system",
+            "content": "You decide whether a bug report should proceed to repair. Follow the required output format exactly.",
+        },
+        {"role": "user", "content": prompt},
+    ],
+    "temperature": 0.1,
+    "max_tokens": 64,
+}
+
+request = urllib.request.Request(
+    os.environ["DEEPSEEK_BASE_URL"].rstrip("/") + "/chat/completions",
+    data=json.dumps(payload).encode("utf-8"),
+    headers={
+        "Authorization": f"Bearer {os.environ['DEEPSEEK_API_KEY']}",
+        "Content-Type": "application/json",
+    },
+    method="POST",
+)
+
+with urllib.request.urlopen(request, timeout=60) as response:
+    body = json.loads(response.read().decode("utf-8"))
+
+content = body["choices"][0]["message"]["content"].strip()
+lines = [line.strip() for line in content.splitlines() if line.strip()]
+decision = lines[0].upper() if lines else "SKIP"
+if decision not in {"SOLVE", "SKIP"}:
+    decision = "SOLVE" if "SOLVE" in content.upper() else "SKIP"
+reason = lines[1] if len(lines) > 1 else "No reason provided."
+print(f"{decision}\t{reason}")
+PY
+}
+
+branch_name="$(build_branch_name "$bug_description")"
+echo "Using branch name: $branch_name"
+
+round_index=1
+while true; do
+  if [[ -n "$round_limit" && "$round_index" -gt "$round_limit" ]]; then
+    break
+  fi
+
+  echo "=== auto_agents round $round_index ==="
+
+  ./multi_agents/start_agent finder "$bug_description"
+  ./multi_agents/start_agent identifier
+
+  case_id="$(select_latest_fixable_case)"
+  if [[ -z "$case_id" ]]; then
+    echo "No case with both finder and identifier reports exists yet."
+    round_index=$((round_index + 1))
+    continue
+  fi
+
+  judgment="$(judge_case "$case_id")"
+  decision="${judgment%%$'\t'*}"
+  reason="${judgment#*$'\t'}"
+  echo "Case $case_id judgment: $decision - $reason"
+
+  if [[ "$decision" != "SOLVE" ]]; then
+    round_index=$((round_index + 1))
+    continue
+  fi
+
+  ./multi_agents/start_agent reflector
+  ./multi_agents/start_agent fixer "$branch_name"
+
+  round_index=$((round_index + 1))
+done

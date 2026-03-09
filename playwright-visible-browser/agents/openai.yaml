@@ -1,0 +1,4 @@
+interface:
+  display_name: "Playwright Visible Browser"
+  short_description: "Reliable headed Chromium for repo QA"
+  default_prompt: "Use $playwright-visible-browser with $playwright-interactive to open a visible Chromium window in this repo."
